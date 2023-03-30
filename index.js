@@ -33,11 +33,16 @@ mongoose
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://draftbotpro.herokuapp.com"],
     emthods: ["GET", "POST"],
   },
 });
+// app.use(express.static(path.join(__dirname, 'build')));
 
+// // Always return the main index.html for any unmatched route
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'build/index.html'));
+// });
 const commands = [
   "$in",
   "$out",
