@@ -4,6 +4,7 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 app.use(cors());
+const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 const crypto = require("crypto");
 const { discordBotCmds } = require("./state");
