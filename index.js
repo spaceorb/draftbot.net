@@ -16,6 +16,12 @@ const { DiscordBotLogic } = require("./discordBotLogic");
 const logger = require("./logger");
 require("dotenv").config();
 
+app.use(express.static(path.join(__dirname, "build")));
+
+// Always return the main index.html for any unmatched route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build/index.html"));
+});
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 logger.info("connecting to", process.env.MONGODB);
