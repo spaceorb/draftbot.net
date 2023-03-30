@@ -1529,6 +1529,7 @@ const discordBotCmds = async (msg1, author, room) => {
             removeOldMsg(msg, randomizedArr.join(" "));
             randomizedCopy = randomizedArr.join(" ");
             randomizedAlready = 1;
+            console.log("z");
           }
           randomizedCount++;
         } else {
