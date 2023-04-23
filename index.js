@@ -94,93 +94,84 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_public_room", async (data) => {
-    await PrivateUsers.find({}).then(async (result) => {
-      const toDelete = result.filter((user) => user.user[1] === data[1]);
-      console.log("to Delete A", toDelete);
-
-      if (toDelete) {
-        console.log("toDelete B", toDelete);
-        toDelete.forEach(
-          async (user) => await PrivateUsers.deleteOne({ _id: user._id })
-        );
-      }
-      await PrivateUsers.find({}).then(async (result) =>
-        console.log("toDelete C", result)
+    const updatedUserInfo = [...data.slice(0, -1), "public"];
+    try {
+      const updatedUser = await OnlineUsers.findOneAndUpdate(
+        { "user.0": data[0] },
+        { $set: { user: updatedUserInfo } },
+        { new: true }
       );
-    });
-    await PrivateUsers.find({}).then(async (result) => {
+      console.log("updated user public", updatedUser);
+    } catch (error) {
+      console.error("Error updating online user:", error);
+    }
+    await OnlineUsers.find({}).then(async (result) => {
       const sendPrivateUsers = result.map((user) => {
         return user.user;
       });
-      console.log("private users to send", sendPrivateUsers);
       socket.to(data[0]).emit("privateUserLeft", sendPrivateUsers);
       socket.broadcast.emit("privateUserLeft", sendPrivateUsers);
       socket.emit("privateUserLeft", sendPrivateUsers);
     });
 
     socket.join(data[0]);
+
+    const bgColors = [
+      "#FFA500", // Orange
+      "#0099CC", // Sky Blue
+      "#4CAF50", // Lime Green
+      "#FF4500", // Orange Red
+      "#800080", // Purple
+      "#1E90FF", // Dodger Blue
+      "#CD853F", // Peru
+      "#81C784", // Medium Spring Green
+    ];
+    const color = bgColors[Math.floor(Math.random() * bgColors.length)];
+
     await OnlineUsers.find({}).then(async (result) => {
       let userFound = false;
       console.log("join_public_room result", result);
-      result.forEach((user) =>
-        user.user[1] === data[1] ? (userFound = true) : null
-      );
+      result.forEach((user) => {
+        user.user[1] === data[1] ? (userFound = true) : null;
+      });
       if (!userFound) {
         const newUser = new OnlineUsers({
-          user: [socket.id, data[1]],
+          user: [socket.id, data[1], color, "public"],
         });
         await newUser.save();
-        await OnlineUsers.find({}).then((result) => {
-          console.log("new users", result);
-          socket.to(data.room).emit("receive_online_users", { result });
-          socket.broadcast.emit("receive_online_users", { result });
-          socket.emit("receive_online_users", { result });
-        });
       }
+      await OnlineUsers.find({}).then((newResult) => {
+        socket.to(data.room).emit("receive_online_users", { newResult });
+        socket.broadcast.emit("receive_online_users", { newResult });
+        socket.emit("receive_online_users", { newResult });
+      });
     });
 
     console.log(`User with ID ${socket.id} joined room ${data[0]}`);
   });
 
   socket.on("join_private_room", async (data) => {
-    await OnlineUsers.find({}).then(async (result) => {
-      const toDelete = result.find((user) => {
-        return user.user[1] === data[1];
-      });
-      if (toDelete) {
-        await OnlineUsers.deleteOne({ _id: toDelete._id });
-      }
-    });
+    const newUSER = await OnlineUsers.findOneAndUpdate(
+      { "user.0": data[0] },
+      { $set: { user: data } },
+      { new: true }
+    );
+    console.log("newUSER", newUSER);
     await OnlineUsers.find({}).then(async (result) => {
       socket.to(data[0]).emit("userLeft", { result });
       socket.broadcast.emit("userLeft", { result });
       socket.emit("userLeft", { result });
     });
 
-    const privateUser = new PrivateUsers({
-      user: [...data, socket.id],
-    });
-    await privateUser.save();
-    console.log("new private user", privateUser);
-    await PrivateUsers.find({}).then((result) => {
-      const sendPrivateUsers = result.map((user) => {
-        // console.log("aa users", user);
-        return user.user;
-      });
-      socket.to(data.room).emit("receive_private_users", sendPrivateUsers);
-      socket.broadcast.emit("receive_private_users", sendPrivateUsers);
-      socket.emit("receive_private_users", sendPrivateUsers);
-    });
-
     await Rooms.find({}).then(async (result) => {
       let roomExists = false;
       result.forEach((room) => {
-        return room.rooms === data[0] ? (roomExists = true) : null;
+        return room.rooms === data[3] ? (roomExists = true) : null;
       });
 
       if (!roomExists) {
         const newRooms = new Rooms({
-          rooms: data[0],
+          rooms: data[3],
         });
         await newRooms.save();
         await Rooms.find({}).then(async (result) => {
@@ -211,9 +202,9 @@ io.on("connection", (socket) => {
 
     await PrivateMessages.find({}).then((result) => {
       const allPrivateMsgs = result;
-      console.log("private message result", result);
-      console.log("data room", data.room);
-      console.log("allPrivateMsgs", allPrivateMsgs);
+      // console.log("private message result", result);
+      // console.log("data room", data.room);
+      // console.log("allPrivateMsgs", allPrivateMsgs);
 
       socket.broadcast.emit("receive_private_messages", {
         newMessage,
@@ -232,6 +223,7 @@ io.on("connection", (socket) => {
 
     data = { ...data, messageKey };
     const newMessage = new MessageList({
+      roomId: data.room,
       message: data,
     });
     await newMessage.save();
@@ -248,47 +240,21 @@ io.on("connection", (socket) => {
     let draftBotData;
     let draftBotMsg;
 
-    if (commands.includes(data.message)) {
-      await PublicBotData.find({}).then(async (result) => {
-        if (result.length === 0) {
+    if (commands.includes(data.message.split(" ")[0])) {
+      await PublicBotData.find({ roomId: data.room }).then(async (result) => {
+        console.log("RESULT ROOM", result);
+        console.log("DATA ROOM", data.room);
+
+        if (result[0] === undefined) {
           const newDraft = new PublicBotData({
-            room: data.room,
-            listArr: [],
-            randomizedArr: [],
-            team1: [],
-            team2: [],
-            captains: [],
-            pingedPlayers: [],
-            inDraft: [],
+            roomId: data.room,
           });
           await newDraft.save();
         } else {
-          result.forEach((resultData) => {
-            console.log("resultData.room", resultData.room);
-            console.log("data.room", data.room);
-            resultData.room === data.room ? (createNewData = false) : null;
-          });
-
-          if (createNewData) {
-            const newDraft = new PublicBotData({
-              room: data.room,
-              listArr: [],
-              randomizedArr: [],
-              team1: [],
-              team2: [],
-              captains: [],
-              pingedPlayers: [],
-              inDraft: [],
-            });
-            await newDraft.save();
-          }
         }
       });
 
-      await PublicBotData.find({ room: data.room }).then((result) => {
-        console.log("publicdataresult", result);
-        draftBotData = result;
-      });
+      draftBotData = await PublicBotData.find({ roomId: data.room });
       draftBotMsg = {
         room: data.room,
         author: "Draft Bot",
@@ -297,20 +263,21 @@ io.on("connection", (socket) => {
         messageKey: generateSecretKey(),
       };
       const newMessage = new MessageList({
+        roomId: data.room,
         message: draftBotMsg,
       });
       await newMessage.save();
 
-      if (draftBotMsg.message.includes("Draft List:")) {
+      if (draftBotMsg.message.split(" ")[0] == "⚔️") {
         let messagesByBot = await MessageList.find({
           "message.author": "Draft Bot",
         });
-        console.log("messagesByBot", messagesByBot);
+        // console.log("messagesByBot", messagesByBot);
         messagesByBot.forEach(async (msg) => {
           const message = String(msg.message.message);
 
           if (
-            message.includes("Draft List:") &&
+            message.includes("List:\n") &&
             msg.message.messageKey !== draftBotMsg.messageKey
           )
             await MessageList.findByIdAndDelete(msg._id);
@@ -341,37 +308,42 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async (data) => {
-    await PrivateUsers.find({}).then(async (result) => {
-      const toDelete = result.filter((user) => user.user[2] === socket.id);
-      console.log("to Delete A", toDelete);
+    // await PrivateUsers.find({}).then(async (result) => {
+    //   const toDelete = result.filter((user) => user.user[2] === socket.id);
+    //   console.log("to Delete A", toDelete);
 
-      if (toDelete) {
-        console.log("toDelete B", toDelete);
-        toDelete.forEach(
-          async (user) => await PrivateUsers.deleteOne({ _id: user._id })
+    //   if (toDelete) {
+    //     console.log("toDelete B", toDelete);
+    //     toDelete.forEach(
+    //       async (user) => await PrivateUsers.deleteOne({ _id: user._id })
+    //     );
+    //   }
+    //   await PrivateUsers.find({}).then(async (result) =>
+    //     console.log("toDelete C", result)
+    //   );
+    // });
+    // await PrivateUsers.find({}).then(async (result) => {
+    //   const sendPrivateUsers = result.map((user) => {
+    //     return user.user;
+    //   });
+    //   console.log("private users to send", sendPrivateUsers);
+    //   socket.to(data[0]).emit("privateUserLeft", sendPrivateUsers);
+    //   socket.broadcast.emit("privateUserLeft", sendPrivateUsers);
+    //   socket.emit("privateUserLeft", sendPrivateUsers);
+    // });
+    await OnlineUsers.findOne({ "user.0": socket.id }).then(async (result) => {
+      if (result) {
+        const updatedUserInfo = [...result.user.slice(0, -1), "offline"];
+        await OnlineUsers.findOneAndUpdate(
+          { "user.0": socket.id },
+          { $set: { user: updatedUserInfo } },
+          { new: true }
         );
-      }
-      await PrivateUsers.find({}).then(async (result) =>
-        console.log("toDelete C", result)
-      );
-    });
-    await PrivateUsers.find({}).then(async (result) => {
-      const sendPrivateUsers = result.map((user) => {
-        return user.user;
-      });
-      console.log("private users to send", sendPrivateUsers);
-      socket.to(data[0]).emit("privateUserLeft", sendPrivateUsers);
-      socket.broadcast.emit("privateUserLeft", sendPrivateUsers);
-      socket.emit("privateUserLeft", sendPrivateUsers);
-    });
-
-    await OnlineUsers.find({}).then(async (result) => {
-      const toDelete = result.find((user) => user.user[0] === socket.id);
-      if (toDelete) {
-        await OnlineUsers.deleteOne({ _id: toDelete._id });
+        console.log("updatedUserInfo on disconnect", updatedUserInfo);
+      } else {
+        console.log("User not found");
       }
     });
-
     await OnlineUsers.find({}).then(async (result) => {
       socket.to(data.room).emit("userLeft", { result });
       socket.broadcast.emit("userLeft", { result });

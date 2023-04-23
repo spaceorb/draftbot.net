@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const MessageListSchema = new mongoose.Schema({
+  roomId: { type: String, required: true },
   message: Object,
 });
 
