@@ -42,7 +42,7 @@ mongoose
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://draftbotpro.herokuapp.com"],
+    origin: ["http://localhost:3000", "https://draftbot.net"],
     methods: ["GET", "POST"],
   },
 });
