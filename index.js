@@ -20,7 +20,7 @@ const logger = require("./logger");
 require("dotenv").config();
 
 app.use(express.static(path.join(__dirname, "build")));
-app.use(cors({ origin: "https://www.draftbot.net" }));
+
 // Always return the main index.html for any unmatched route
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "build/index.html"));
@@ -42,7 +42,7 @@ mongoose
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://draftbot.net"],
+    origin: ["http://localhost:3000", "https://www.draftbot.net"],
     methods: ["GET", "POST"],
   },
 });
