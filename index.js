@@ -43,7 +43,7 @@ mongoose
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:3000", "https://draftbotpro.herokuapp.com"],
-    emthods: ["GET", "POST"],
+    methods: ["GET", "POST"],
   },
 });
 // app.use(express.static(path.join(__dirname, 'build')));
@@ -53,20 +53,19 @@ const io = new Server(server, {
 //   res.sendFile(path.join(__dirname, 'build/index.html'));
 // });
 const commands = [
-  "$in",
-  "$out",
-  "$list",
-  "$help",
-  "$randomize",
-  "$captain",
-  "$randomizeCaptain",
-  "$rc",
-  "$pick",
-  "$team1",
-  "$team2",
-  "$reset",
-  "$redraft",
-  "$flip",
+  "$in", // done
+  "$out", // done
+  "$list", // done
+  "$randomize", // done
+  "$captain", // done
+  "$uncaptain", // done
+  "$randomizecaptains", // done
+  "$randomizecaptain", // done
+  "$rc", // done
+  "$pick", // done
+  "$reset", // done
+  "$redraft", // done
+  "$flip", // done
   "$swap",
 ];
 
@@ -181,31 +180,23 @@ io.on("connection", (socket) => {
         });
       }
     });
-    // console.log("roomz", room);
     socket.join(data[0]);
-
     console.log(`User with ID ${socket.id}/${data[1]} joined room ${data[0]}`);
   });
 
   socket.on("send_private_message", async (data) => {
     const generateSecretKey = () => crypto.randomBytes(32).toString("base64");
     const messageKey = generateSecretKey();
-    console.log("private message key", messageKey);
     data = { ...data, messageKey };
-    console.log("new data", data);
 
     const newMessage = new PrivateMessages({
+      roomId: data.room,
       message: data,
     });
 
     await newMessage.save();
-
     await PrivateMessages.find({}).then((result) => {
       const allPrivateMsgs = result;
-      // console.log("private message result", result);
-      // console.log("data room", data.room);
-      // console.log("allPrivateMsgs", allPrivateMsgs);
-
       socket.broadcast.emit("receive_private_messages", {
         newMessage,
         allPrivateMsgs,
@@ -215,13 +206,82 @@ io.on("connection", (socket) => {
         .emit("receive_private_messages", { newMessage, allPrivateMsgs });
       socket.emit("receive_private_messages", { newMessage, allPrivateMsgs });
     });
+
+    let minutes = new Date(Date.now()).getMinutes();
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+
+    let createNewData = true;
+    let draftBotData;
+    let draftBotMsg;
+    if (commands.includes(data.message.split(" ")[0].toLowerCase())) {
+      await PublicBotData.find({ roomId: data.room }).then(async (result) => {
+        console.log("RESULT ROOM", result);
+        console.log("DATA ROOM", data.room);
+
+        if (result[0] === undefined) {
+          const newDraft = new PublicBotData({
+            roomId: data.room,
+          });
+          await newDraft.save();
+        }
+      });
+
+      draftBotData = await PublicBotData.find({ roomId: data.room });
+      draftBotMsg = {
+        room: data.room,
+        author: "Draft Bot",
+        message: await discordBotCmds(data.message, data.author, data.room),
+        time: new Date(Date.now()).getHours() + ":" + minutes,
+        messageKey: generateSecretKey(),
+      };
+      const newMessage = new PrivateMessages({
+        roomId: data.room,
+        message: draftBotMsg,
+      });
+      await newMessage.save();
+
+      try {
+        if (draftBotMsg.message.split(" ")[0] == "⚔️") {
+          let messagesByBot = await PrivateMessages.find({
+            "message.author": "Draft Bot",
+          });
+          // console.log("messagesByBot", messagesByBot);
+          messagesByBot.forEach(async (msg) => {
+            const message = String(msg.message.message);
+
+            if (
+              message.includes("List:\n") &&
+              msg.message.messageKey !== draftBotMsg.messageKey
+            )
+              await PrivateMessages.findByIdAndDelete(msg._id);
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+
+      await PrivateMessages.find({}).then((result) => {
+        const allPrivateMsgs = result;
+        console.log("private new message test", newMessage);
+        console.log("test allPrivateMsgs", allPrivateMsgs);
+
+        socket.broadcast.emit("receive_private_messages", {
+          newMessage,
+          allPrivateMsgs,
+        });
+        socket
+          .to(data.room)
+          .emit("receive_private_messages", { newMessage, allPrivateMsgs });
+        socket.emit("receive_private_messages", { newMessage, allPrivateMsgs });
+      });
+    }
   });
 
   socket.on("send_message", async (data) => {
     const generateSecretKey = () => crypto.randomBytes(32).toString("base64");
     const messageKey = generateSecretKey();
-
     data = { ...data, messageKey };
+
     const newMessage = new MessageList({
       roomId: data.room,
       message: data,
@@ -240,7 +300,7 @@ io.on("connection", (socket) => {
     let draftBotData;
     let draftBotMsg;
 
-    if (commands.includes(data.message.split(" ")[0])) {
+    if (commands.includes(data.message.split(" ")[0].toLowerCase())) {
       await PublicBotData.find({ roomId: data.room }).then(async (result) => {
         console.log("RESULT ROOM", result);
         console.log("DATA ROOM", data.room);
@@ -250,7 +310,6 @@ io.on("connection", (socket) => {
             roomId: data.room,
           });
           await newDraft.save();
-        } else {
         }
       });
 
@@ -268,69 +327,38 @@ io.on("connection", (socket) => {
       });
       await newMessage.save();
 
-      if (draftBotMsg.message.split(" ")[0] == "⚔️") {
-        let messagesByBot = await MessageList.find({
-          "message.author": "Draft Bot",
-        });
-        // console.log("messagesByBot", messagesByBot);
-        messagesByBot.forEach(async (msg) => {
-          const message = String(msg.message.message);
+      try {
+        if (draftBotMsg.message.split(" ")[0] == "⚔️") {
+          let messagesByBot = await MessageList.find({
+            "message.author": "Draft Bot",
+          });
+          // console.log("messagesByBot", messagesByBot);
+          messagesByBot.forEach(async (msg) => {
+            const message = String(msg.message.message);
 
-          if (
-            message.includes("List:\n") &&
-            msg.message.messageKey !== draftBotMsg.messageKey
-          )
-            await MessageList.findByIdAndDelete(msg._id);
-        });
+            if (
+              message.includes("List:\n") &&
+              msg.message.messageKey !== draftBotMsg.messageKey
+            )
+              await MessageList.findByIdAndDelete(msg._id);
+          });
+        }
+      } catch (error) {
+        console.log(error);
       }
 
-      console.log("draftbotMSg", draftBotMsg);
+      // console.log("draftbotMSg", draftBotMsg);
       await MessageList.find({}).then((result) => {
+        console.log(" new message test", newMessage);
+        console.log("test allMsgs", result);
         socket.to(data.room).emit("discordBot_message", { newMessage, result });
         socket.broadcast.emit("discordBot_message", { newMessage, result });
         socket.emit("discordBot_message", { newMessage, result });
       });
     }
-
-    // if (data.message === "$in") {
-    //   console.log("draftBotMsg!", draftBotMsg);
-    //   const newMessage = new MessageList({
-    //     message: draftBotMsg,
-    //   });
-    //   await newMessage.save();
-
-    //   await MessageList.find({}).then((result) => {
-    //     socket.to(data.room).emit("discordBot_message", { newMessage, result });
-    //     socket.broadcast.emit("discordBot_message", { newMessage, result });
-    //     socket.emit("discordBot_message", { newMessage, result });
-    //   });
-    // }
   });
 
   socket.on("disconnect", async (data) => {
-    // await PrivateUsers.find({}).then(async (result) => {
-    //   const toDelete = result.filter((user) => user.user[2] === socket.id);
-    //   console.log("to Delete A", toDelete);
-
-    //   if (toDelete) {
-    //     console.log("toDelete B", toDelete);
-    //     toDelete.forEach(
-    //       async (user) => await PrivateUsers.deleteOne({ _id: user._id })
-    //     );
-    //   }
-    //   await PrivateUsers.find({}).then(async (result) =>
-    //     console.log("toDelete C", result)
-    //   );
-    // });
-    // await PrivateUsers.find({}).then(async (result) => {
-    //   const sendPrivateUsers = result.map((user) => {
-    //     return user.user;
-    //   });
-    //   console.log("private users to send", sendPrivateUsers);
-    //   socket.to(data[0]).emit("privateUserLeft", sendPrivateUsers);
-    //   socket.broadcast.emit("privateUserLeft", sendPrivateUsers);
-    //   socket.emit("privateUserLeft", sendPrivateUsers);
-    // });
     await OnlineUsers.findOne({ "user.0": socket.id }).then(async (result) => {
       if (result) {
         const updatedUserInfo = [...result.user.slice(0, -1), "offline"];

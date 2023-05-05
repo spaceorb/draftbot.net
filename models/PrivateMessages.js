@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const PrivateMessagesSchema = new mongoose.Schema({
+  roomId: { type: String, required: true, unique: true },
   message: Object,
 });
 

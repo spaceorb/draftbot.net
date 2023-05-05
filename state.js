@@ -44,7 +44,10 @@ const BotData = require("./models/PublicBotData");
 const discordBotCmds = async (msg1, author, room) => {
   let newBotData = await BotData.find({ roomId: room });
   let command = msg1.split(" ")[0].toLowerCase();
-  let contents = msg1.split(" ").slice(1);
+  let contents = msg1
+    .split(" ")
+    .filter((element) => element.trim() !== "")
+    .slice(1);
   let peopleSymbol = "⚔️";
   let msg = msg1;
   let playerName = author.toUpperCase();
@@ -54,8 +57,11 @@ const discordBotCmds = async (msg1, author, room) => {
     roomId,
     listArr,
     inDraft,
+    inDraftCopy,
     team1,
+    team1Copy,
     team2,
+    team2Copy,
     captain1,
     captain2,
     playerAndTime,
@@ -87,6 +93,9 @@ const discordBotCmds = async (msg1, author, room) => {
   };
 
   function updatePlayerCount() {
+    let newTeam1 = [...captain1, ...team1];
+    let newTeam2 = [...captain2, ...team2];
+
     listArr = [
       `${peopleSymbol} `,
       `${
@@ -98,12 +107,12 @@ const discordBotCmds = async (msg1, author, room) => {
       }`,
       `Draft List:\n`,
       `${inDraft.join(" ")}`,
-      `Team 1: ${captain1.length > 0 ? ` 👑\n${captain1.join("\n")}` : " "}${
-        team1 ? team1.join("\n") + `${team1.length > 0 ? " " : " "}` : " "
-      }`,
-      `Team 2: ${captain2.length > 0 ? ` 👑\n${captain2.join("\n")}` : " "}${
-        team2 ? team2.join("\n") + `${team2.length > 0 ? " " : " "}` : " "
-      }`,
+      `Team 1: ${captain1.length > 0 ? `\n👑` : " "}\n\n${newTeam1.join(
+        "\n·\n"
+      )}`,
+      `Team 2: ${captain2.length > 0 ? `\n👑` : " "}\n\n${newTeam2.join(
+        "\n·\n"
+      )}`,
     ];
     finalReturn();
   }
@@ -121,27 +130,37 @@ const discordBotCmds = async (msg1, author, room) => {
     resetCount = 0;
   }
 
-  if (command === "$in") {
+  if (command == "$in") {
     console.log("contents", contents);
 
     if (contents.length > 0) {
       contents.forEach((content) => {
-        if (!inDraft.includes(content)) {
+        if (
+          !inDraft.includes(content.toUpperCase()) &&
+          !captain1.includes(content.toUpperCase()) &&
+          !captain2.includes(content.toUpperCase()) &&
+          !team1.includes(content.toUpperCase()) &&
+          !team2.includes(content.toUpperCase())
+        ) {
           console.log("--content", content);
           inDraft.push(content.toUpperCase());
-          playerAndTime.push({
-            playerName: content.toUpperCase(),
-            time: new Date(),
-            addedBy: playerName,
-          });
         }
       });
 
       updatePlayerCount();
       return listArr.join(" ");
     }
-    if (!inDraft.includes(playerName)) {
+    if (
+      !inDraft.includes(playerName) &&
+      !captain1.includes(playerName) &&
+      !captain2.includes(playerName) &&
+      !team1.includes(playerName) &&
+      !team2.includes(playerName)
+    ) {
+      console.log("playerName indraft", playerName);
       inDraft.push(playerName);
+      console.log("indraft", inDraft);
+
       playerAndTime.push({
         playerName,
         time: new Date(),
@@ -154,7 +173,7 @@ const discordBotCmds = async (msg1, author, room) => {
     }
   }
 
-  if (command === "$out") {
+  if (command == "$out") {
     const removeFromArray = (arr, name) => {
       const index = arr.indexOf(name);
       if (index > -1) {
@@ -163,13 +182,51 @@ const discordBotCmds = async (msg1, author, room) => {
     };
     if (contents.length > 0) {
       contents.forEach((content) => {
-        inDraft.splice(inDraft.indexOf(content.toUpperCase()), 1);
-        // inDraft.splice(inDraft.indexOf(content), 1);
-        const index = playerAndTime.findIndex(
-          (player) => player.playerName === content.toUpperCase()
-        );
-        if (index !== -1) {
-          playerAndTime.splice(index, 1);
+        if (inDraft.indexOf(content.toUpperCase()) !== -1) {
+          inDraft.splice(inDraft.indexOf(content.toUpperCase()), 1);
+          // inDraft.splice(inDraft.indexOf(content), 1);
+          const index = playerAndTime.findIndex(
+            (player) => player.playerName === content.toUpperCase()
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
+        } else if (team1.indexOf(content.toUpperCase()) !== -1) {
+          team1.splice(team1.indexOf(content.toUpperCase()), 1);
+          // inDraft.splice(inDraft.indexOf(content), 1);
+          const index = playerAndTime.findIndex(
+            (player) => player.playerName === content.toUpperCase()
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
+        } else if (team2.indexOf(content.toUpperCase()) !== -1) {
+          team2.splice(team2.indexOf(content.toUpperCase()), 1);
+          // inDraft.splice(inDraft.indexOf(content), 1);
+          const index = playerAndTime.findIndex(
+            (player) => player.playerName === content.toUpperCase()
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
+        } else if (captain1.indexOf(content.toUpperCase()) !== -1) {
+          captain1.splice(captain1.indexOf(content.toUpperCase()), 1);
+          // inDraft.splice(inDraft.indexOf(content), 1);
+          const index = playerAndTime.findIndex(
+            (player) => player.playerName === content.toUpperCase()
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
+        } else if (captain2.indexOf(content.toUpperCase()) !== -1) {
+          captain2.splice(captain2.indexOf(content.toUpperCase()), 1);
+          // inDraft.splice(inDraft.indexOf(content), 1);
+          const index = playerAndTime.findIndex(
+            (player) => player.playerName === content.toUpperCase()
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
         }
       });
       updatePlayerCount();
@@ -189,7 +246,7 @@ const discordBotCmds = async (msg1, author, room) => {
     return listArr.join(" ");
   }
 
-  if (command === "$captain") {
+  if (command == "$captain") {
     let captainsLength = captain1.length + captain2.length;
     if (
       captainsLength > 1 ||
@@ -198,55 +255,160 @@ const discordBotCmds = async (msg1, author, room) => {
     ) {
       return "There can't be 3 captains.";
     }
-    if (contents.length > 0) {
-      contents.forEach((content) => {
-        captain1.length === 0
-          ? captain1.push(content.toUpperCase())
-          : captain2.push(content.toUpperCase());
-      });
+    // if (contents.length > 0) {
+    //   contents.forEach((content) => {
+    //     captain1.length === 0
+    //       ? captain1.push(content.toUpperCase())
+    //       : captain2.push(content.toUpperCase());
+    //   });
 
+    //   updatePlayerCount();
+    //   return listArr.join(" ");
+    // }
+
+    if (contents.length === 0) {
+      if (captain1[0] === playerName || captain2[0] === playerName) {
+        return "You are already captain.";
+      } else if (captain1.length > 0 && captain2.length > 0) {
+        return "There can't be 3 captains.";
+      } else if (team1.includes(playerName)) {
+        return "You are already on team1.";
+      } else if (team2.includes(playerName)) {
+        return "You are already on team2.";
+      } else if (inDraft.includes(playerName)) {
+        inDraft.splice(inDraft.indexOf(playerName), 1);
+      }
+      if (captain1.length === 0) {
+        captain1.push(playerName);
+      } else if (captain2.length === 0) {
+        captain2.push(playerName);
+      }
       updatePlayerCount();
       return listArr.join(" ");
+    } else {
+      return `
+      Captaining others is disallowed. Players must self-captain or use $rc to randomize captains.`;
     }
-
-    if (captain1[0] === playerName || captain2[0] === playerName) {
-      return "You are already captain.";
-    } else if (captain1.length > 0 && captain2.length > 0) {
-      return "There can't be 3 captains.";
-    } else if (team1.includes(playerName)) {
-      return "You are already on team1.";
-    } else if (team2.includes(playerName)) {
-      return "You are already on team2.";
-    } else if (inDraft.includes(playerName)) {
-      inDraft.splice(inDraft.indexOf(playerName), 1);
-    }
-
-    if (captain1.length === 0) {
-      captain1.push(playerName);
-    } else if (captain2.length === 0) {
-      captain2.push(playerName);
-    }
-    updatePlayerCount();
-    return listArr.join(" ");
   }
 
-  if (command === "$uncaptain") {
-    if (captain1[0] === playerName) {
+  if (command == "$pick") {
+    if (captain1[0] === playerName || captain2[0] === playerName) {
+      for (let i = 0; i < contents.length; i++) {
+        const player = contents[i].toUpperCase();
+        if (!inDraft.includes(player)) {
+          continue; // Skip players that are not in the draft
+        }
+        if (captain1[0] === playerName) {
+          team1.push(player);
+          inDraft.splice(inDraft.indexOf(player), 1);
+          const index = playerAndTime.findIndex(
+            (playerAndTime) => playerAndTime.playerName === player
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
+        } else if (captain2[0] === playerName) {
+          team2.push(player);
+          inDraft.splice(inDraft.indexOf(player), 1);
+          const index = playerAndTime.findIndex(
+            (playerAndTime) => playerAndTime.playerName === player
+          );
+          if (index !== -1) {
+            playerAndTime.splice(index, 1);
+          }
+        }
+      }
+      updatePlayerCount();
+      return listArr.join(" ");
+    } else {
+      return "You are not captain.";
+    }
+  }
+
+  if (command == "$uncaptain") {
+    if (captain1[0] !== playerName && captain2[0] !== playerName) {
+      console.log("captain1", captain1[0]);
+      console.log("captain2", captain2[0]);
+      console.log("playerName", playerName);
+      return "You are not captain.";
+    }
+
+    if (
+      captain1[0] === playerName ||
+      captain1[0] === contents[0].toUpperCase()
+    ) {
       captain1 = [];
       inDraft.push(playerName);
-    } else if (captain2[0] === playerName) {
+    } else if (
+      captain2[0] === playerName ||
+      captain2[0] === contents[0].toUpperCase()
+    ) {
       captain2 = [];
       inDraft.push(playerName);
     }
+
+    if (contents.length > 0 && contents[0].toUpperCase() !== playerName) {
+      return "You can only uncaptain yourself.";
+    }
+
     updatePlayerCount();
     return listArr.join(" ");
   }
 
-  if (command === "$swap") {
-    // Implement swap logic
+  if (command == "$swap") {
+    const swapPlayers = (x, y) => {
+      const arraysToSearch = [inDraft, team1, team2, captain1, captain2];
+      let xArray, yArray;
+
+      // Find the arrays containing x and y
+      for (const array of arraysToSearch) {
+        if (array.includes(x)) xArray = array;
+        if (array.includes(y)) yArray = array;
+      }
+
+      if (xArray && yArray) {
+        const xIndex = xArray.indexOf(x);
+        const yIndex = yArray.indexOf(y);
+
+        // Swap the players
+        xArray[xIndex] = y;
+        yArray[yIndex] = x;
+      }
+    };
+
+    if (contents[0] && contents[1]) {
+      if (
+        (inDraft.includes(contents[0].toUpperCase()) ||
+          team1.includes(contents[0].toUpperCase()) ||
+          team2.includes(contents[0].toUpperCase()) ||
+          captain1.includes(contents[0].toUpperCase()) ||
+          captain2.includes(contents[0].toUpperCase())) &&
+        (inDraft.includes(contents[1].toUpperCase()) ||
+          team1.includes(contents[1].toUpperCase()) ||
+          team2.includes(contents[1].toUpperCase()) ||
+          captain1.includes(contents[1].toUpperCase()) ||
+          captain2.includes(contents[1].toUpperCase()))
+      ) {
+        swapPlayers(contents[0].toUpperCase(), contents[1].toUpperCase());
+        updatePlayerCount();
+        return listArr.join(" ");
+      } else {
+        return "Both players must be in the draft.";
+      }
+    }
   }
 
-  if (command === "$reset") {
+  if (command == "$redraft") {
+    inDraft = [...inDraft, ...team1, ...team2, ...captain1, ...captain2];
+    team1 = [];
+    team2 = [];
+    captain1 = [];
+    captain2 = [];
+    updatePlayerCount();
+    return listArr.join(" ");
+  }
+
+  if (command == "$reset") {
     inDraft = [];
     team1 = [];
     team2 = [];
@@ -258,7 +420,7 @@ const discordBotCmds = async (msg1, author, room) => {
     return listArr.join(" ");
   }
 
-  if (command === "$recover") {
+  if (command == "$recover") {
     if (
       inDraft.length === 0 &&
       team1.length === 0 &&
@@ -272,31 +434,73 @@ const discordBotCmds = async (msg1, author, room) => {
     }
   }
 
-  if (command === "$list") {
+  if (command == "$list") {
     updatePlayerCount();
-
     return listArr.join(" ");
   }
 
-  if (command === "$randomize") {
-    // Implement randomize logic
+  if (command == "$randomize") {
+    if (
+      [...inDraft, ...captain1, ...captain2, ...team1, ...team2].length % 2 ===
+      1
+    ) {
+      return "There must be an even number of players in draft to randomize.";
+    } else {
+      const players = [
+        ...inDraft,
+        ...captain1,
+        ...captain2,
+        ...team1,
+        ...team2,
+      ];
+      team1 = [];
+      team2 = [];
+      const shuffledPlayers = players.sort(() => Math.random() - 0.5);
+      shuffledPlayers.forEach((player, index) => {
+        const team = index % 2 === 0 ? team1 : team2;
+        team.push(player);
+      });
+
+      inDraft = [];
+      captain1 = [];
+      captain2 = [];
+      updatePlayerCount();
+      return listArr.join(" ");
+    }
   }
 
-  if (command === "$rc") {
-    // Implement random captain logic
+  if (
+    command == "$rc" ||
+    command == "$randomizecaptains" ||
+    command == "$randomizecaptain"
+  ) {
+    inDraft = [...inDraft, ...captain1, ...captain2, ...team1, ...team2];
+    captain1 = [];
+    captain2 = [];
+    team1 = [];
+    team2 = [];
+
+    const createRandomIndex = () => Math.floor(Math.random() * inDraft.length);
+    captain1 = [inDraft[createRandomIndex()]];
+    console.log("indraft before", inDraft);
+    inDraft.splice(inDraft.indexOf(captain1[0]), 1);
+    console.log("inDraft after", inDraft);
+
+    console.log("inDraft before cpt2", inDraft);
+
+    captain2 = [inDraft[createRandomIndex()]];
+    inDraft.splice(inDraft.indexOf(captain2[0]), 1);
+    console.log("inDraft after cpt2", inDraft);
+    updatePlayerCount();
+    return listArr.join(" ");
   }
 
-  if (command === "$time") {
-    const playerEntry = playerAndTime.find(
-      (entry) => entry.playerName === playerName
-    );
-    if (playerEntry) {
-      const currentTime = new Date();
-      const timeDifference = currentTime - playerEntry.time;
-      const timeMessage = formatTimeDifference(timeDifference); // You need to implement formatTimeDifference function to return a string in the desired format
-      const addedBy = playerEntry.addedBy;
-      const resultMessage = `${playerName} joined the draft ${timeMessage} ago by ${addedBy}.`;
-      // Send resultMessage to the user
+  if (command == "$flip") {
+    const randomCoinFlip = Math.floor(Math.random() * 2);
+    if (randomCoinFlip === 0) {
+      return "Heads!";
+    } else {
+      return "Tails!";
     }
   }
 };
