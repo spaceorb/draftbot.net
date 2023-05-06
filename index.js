@@ -234,7 +234,10 @@ io.on("connection", (socket) => {
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (message.includes("List:\n") && messagesByBot.length > 1)
+            if (
+              message.includes("List:\n") &&
+              msg.message.messageKey !== draftBotMsg.messageKey
+            )
               await PrivateMessages.findByIdAndDelete(msg._id);
           });
         }
@@ -315,7 +318,10 @@ io.on("connection", (socket) => {
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (message.includes("List:\n") && messagesByBot.length > 1)
+            if (
+              message.includes("List:\n") &&
+              msg.message.messageKey !== draftBotMsg.messageKey
+            )
               await MessageList.findByIdAndDelete(msg._id);
           });
         }
