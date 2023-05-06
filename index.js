@@ -234,7 +234,7 @@ io.on("connection", (socket) => {
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (message.includes("List:\n"))
+            if (message.includes("List:\n") && messagesByBot.length > 1)
               await PrivateMessages.findByIdAndDelete(msg._id);
           });
         }
@@ -315,7 +315,7 @@ io.on("connection", (socket) => {
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (message.includes("List:\n"))
+            if (message.includes("List:\n") && messagesByBot.length > 1)
               await MessageList.findByIdAndDelete(msg._id);
           });
         }
