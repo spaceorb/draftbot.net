@@ -20,16 +20,12 @@ const logger = require("./logger");
 require("dotenv").config();
 
 app.use(express.static(path.join(__dirname, "build")));
-
-// Always return the main index.html for any unmatched route
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "build/index.html"));
 });
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 logger.info("connecting to", process.env.MONGODB);
-// BOT COMMANDS
-//
 
 mongoose
   .connect(process.env.MONGODB)
@@ -46,12 +42,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-// app.use(express.static(path.join(__dirname, 'build')));
 
-// // Always return the main index.html for any unmatched route
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'build/index.html'));
-// });
 const commands = [
   "$in", // done
   "$out", // done
@@ -66,7 +57,7 @@ const commands = [
   "$reset", // done
   "$redraft", // done
   "$flip", // done
-  "$swap",
+  "$swap", // done
 ];
 
 io.on("connection", (socket) => {
@@ -84,14 +75,12 @@ io.on("connection", (socket) => {
       socket.emit("receive_initial_private_messages", result);
     });
   });
-
   socket.on("get_rooms", async (data) => {
     console.log("got here");
     await Rooms.find({}).then((result) => {
       socket.emit("receive_rooms", result);
     });
   });
-
   socket.on("join_public_room", async (data) => {
     const updatedUserInfo = [...data.slice(0, -1), "public"];
     try {
@@ -100,7 +89,6 @@ io.on("connection", (socket) => {
         { $set: { user: updatedUserInfo } },
         { new: true }
       );
-      console.log("updated user public", updatedUser);
     } catch (error) {
       console.error("Error updating online user:", error);
     }
@@ -145,7 +133,6 @@ io.on("connection", (socket) => {
         socket.emit("receive_online_users", { newResult });
       });
     });
-
     console.log(`User with ID ${socket.id} joined room ${data[0]}`);
   });
 
@@ -210,7 +197,6 @@ io.on("connection", (socket) => {
     let minutes = new Date(Date.now()).getMinutes();
     minutes = minutes < 10 ? "0" + minutes : minutes;
 
-    let createNewData = true;
     let draftBotData;
     let draftBotMsg;
     if (commands.includes(data.message.split(" ")[0].toLowerCase())) {
@@ -245,14 +231,10 @@ io.on("connection", (socket) => {
           let messagesByBot = await PrivateMessages.find({
             "message.author": "Draft Bot",
           });
-          // console.log("messagesByBot", messagesByBot);
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (
-              message.includes("List:\n") &&
-              msg.message.messageKey !== draftBotMsg.messageKey
-            )
+            if (message.includes("List:\n"))
               await PrivateMessages.findByIdAndDelete(msg._id);
           });
         }
@@ -296,7 +278,6 @@ io.on("connection", (socket) => {
     let minutes = new Date(Date.now()).getMinutes();
     minutes = minutes < 10 ? "0" + minutes : minutes;
 
-    let createNewData = true;
     let draftBotData;
     let draftBotMsg;
 
@@ -312,7 +293,6 @@ io.on("connection", (socket) => {
           await newDraft.save();
         }
       });
-
       draftBotData = await PublicBotData.find({ roomId: data.room });
       draftBotMsg = {
         room: data.room,
@@ -326,7 +306,6 @@ io.on("connection", (socket) => {
         message: draftBotMsg,
       });
       await newMessage.save();
-
       try {
         if (draftBotMsg.message.split(" ")[0] == "⚔️") {
           let messagesByBot = await MessageList.find({
@@ -336,10 +315,7 @@ io.on("connection", (socket) => {
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (
-              message.includes("List:\n") &&
-              msg.message.messageKey !== draftBotMsg.messageKey
-            )
+            if (message.includes("List:\n"))
               await MessageList.findByIdAndDelete(msg._id);
           });
         }
@@ -347,7 +323,6 @@ io.on("connection", (socket) => {
         console.log(error);
       }
 
-      // console.log("draftbotMSg", draftBotMsg);
       await MessageList.find({}).then((result) => {
         console.log(" new message test", newMessage);
         console.log("test allMsgs", result);
@@ -380,5 +355,4 @@ io.on("connection", (socket) => {
     console.log("user disconnected", socket.id);
   });
 });
-
 server.listen(PORT, () => [console.log(`listening on Port ${PORT}!`)]);
