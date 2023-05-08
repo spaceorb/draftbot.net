@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.671825bc.css",
-    "main.js": "/static/js/main.c3900c24.js",
+    "main.css": "/static/css/main.912d9d61.css",
+    "main.js": "/static/js/main.7d014eb3.js",
     "static/media/statcard.png": "/static/media/statcard.d6bc112a082b781d10e7.png",
     "static/media/leaderboard.png": "/static/media/leaderboard.27d0b8e4efe433ce8c34.png",
     "static/media/draftbot-face.png": "/static/media/draftbot-face.76aa4a17306506b8edb8.png",
@@ -9,13 +9,13 @@
     "static/media/sm2.png": "/static/media/sm2.2087c2ae2a161ac7ee8f.png",
     "static/media/newChannels.png": "/static/media/newChannels.5bc7fa73a1e3965282f8.png",
     "index.html": "/index.html",
-    "static/media/wave.svg": "/static/media/wave.5fa6bee291ad1bea3196.svg",
-    "static/media/wave2.svg": "/static/media/wave2.a661e406b20453aa9551.svg",
-    "main.671825bc.css.map": "/static/css/main.671825bc.css.map",
-    "main.c3900c24.js.map": "/static/js/main.c3900c24.js.map"
+    "static/media/wave3.svg": "/static/media/wave3.5fa6bee291ad1bea3196.svg",
+    "static/media/wave2.svg": "/static/media/wave2.601dc853b96077c9b506.svg",
+    "main.912d9d61.css.map": "/static/css/main.912d9d61.css.map",
+    "main.7d014eb3.js.map": "/static/js/main.7d014eb3.js.map"
   },
   "entrypoints": [
-    "static/css/main.671825bc.css",
-    "static/js/main.c3900c24.js"
+    "static/css/main.912d9d61.css",
+    "static/js/main.7d014eb3.js"
   ]
 }
