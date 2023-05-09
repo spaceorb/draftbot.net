@@ -38,7 +38,11 @@ mongoose
 // console.log("db", db);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://draftbot.net"],
+    origin: [
+      "http://localhost:3000",
+      "https://draftbot.net",
+      "https://www.draftbot.net",
+    ],
     methods: ["GET", "POST"],
   },
 });
