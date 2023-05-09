@@ -27,14 +27,36 @@ const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 logger.info("connecting to", process.env.MONGODB);
 
-mongoose
-  .connect(process.env.MONGODB)
+const conn1 = mongoose.createConnection(process.env.MONGODB1, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const conn2 = mongoose.createConnection(process.env.MONGODB2, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+conn1
   .then(() => {
-    logger.info("connected to MongoDB");
+    logger.info("connected to MongoDB1");
   })
   .catch((error) => {
-    logger.error("error connecting to MongoDB:", error.message);
+    logger.error("error connecting to MongoDB1:", error.message);
   });
+conn2
+  .then(() => {
+    logger.info("connected to MongoDB2");
+  })
+  .catch((error) => {
+    logger.error("error connecting to MongoDB2:", error.message);
+  });
+// mongoose
+//   .connect(process.env.MONGODB)
+//   .then(() => {
+//     logger.info("connected to MongoDB");
+//   })
+//   .catch((error) => {
+//     logger.error("error connecting to MongoDB:", error.message);
+//   });
 
 const io = new Server(server, {
   cors: {
