@@ -28,17 +28,17 @@ mongoose.set("strictQuery", false);
 logger.info("connecting to", process.env.MONGODB);
 
 mongoose
-  .connect(process.env.MONGODB)
-  .then(() => {
-    logger.info("connected to MongoDB");
+  .connect(process.env.MONGODB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
   })
-  .catch((error) => {
-    logger.error("error connecting to MongoDB:", error.message);
-  });
-
+  .then(() => console.log("MongoDB Connected..."))
+  .catch((err) => console.log(err));
+// const db = mongoose.connection.useDb("te");
+// console.log("db", db);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://www.draftbot.net"],
+    origin: ["http://localhost:3000", "https://draftbot.net"],
     methods: ["GET", "POST"],
   },
 });
