@@ -8,6 +8,7 @@ app.use(cors());
 const PORT = process.env.PORT || 3001;
 const server = http.createServer(app);
 const crypto = require("crypto");
+const middleware = require("./middleware");
 const { discordBotCmds } = require("./state");
 const Rooms = require("./models/Rooms");
 const MessageList = require("./models/MessageList");
@@ -19,15 +20,11 @@ const { DiscordBotLogic } = require("./discordBotLogic");
 const logger = require("./logger");
 require("dotenv").config();
 
-const enforceHTTPS = (req, res, next) => {
-  if (req.headers["x-forwarded-proto"] !== "https") {
-    return res.redirect(["https://", req.get("Host"), req.url].join(""));
-  }
-  next();
-};
 if (process.env.NODE_ENV === "production") {
-  app.use(enforceHTTPS);
+  app.use(middleware.enforceHTTPS);
+  app.use(middleware.redirectToNonWWW);
 }
+
 app.use(express.static(path.join(__dirname, "build")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "build/index.html"));
