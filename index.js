@@ -23,7 +23,6 @@ require("dotenv").config();
 if (process.env.NODE_ENV === "production") {
   app.use(middleware.enforceHTTPS);
   app.use(middleware.redirectToNonWWW);
-  console.log("hi");
 }
 
 app.use(express.static(path.join(__dirname, "build")));
@@ -55,20 +54,20 @@ const io = new Server(server, {
 });
 
 const commands = [
-  "$in", // done
-  "$out", // done
-  "$list", // done
-  "$randomize", // done
-  "$captain", // done
-  "$uncaptain", // done
-  "$randomizecaptains", // done
-  "$randomizecaptain", // done
-  "$rc", // done
-  "$pick", // done
-  "$reset", // done
-  "$redraft", // done
-  "$flip", // done
-  "$swap", // done
+  "$in",
+  "$out",
+  "$list",
+  "$randomize",
+  "$captain",
+  "$uncaptain",
+  "$randomizecaptains",
+  "$randomizecaptain",
+  "$rc",
+  "$pick",
+  "$reset",
+  "$redraft",
+  "$flip",
+  "$swap",
 ];
 
 io.on("connection", (socket) => {
@@ -329,10 +328,7 @@ io.on("connection", (socket) => {
           messagesByBot.forEach(async (msg) => {
             const message = String(msg.message.message);
 
-            if (
-              message.includes("List:\n") &&
-              msg.message.messageKey !== draftBotMsg.messageKey
-            )
+            if (msg.message.messageKey !== draftBotMsg.messageKey)
               await MessageList.findByIdAndDelete(msg._id);
           });
         }
