@@ -62,6 +62,7 @@ app.get("/api/diraota", (req, res) => {
     AllServers.find()
       .then((data) => {
         res.send(data);
+        console.log("HII", data);
       })
       .catch((err) => console.log(err));
   } else {
