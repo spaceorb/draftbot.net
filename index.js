@@ -71,7 +71,7 @@ app.get("/api/endpoint", async (req, res) => {
 });
 
 app.get("/api/diraota", (req, res) => {
-  const apiKey = req.headers.authorization;
+  const apiKey = req.headers["authorization"];
 
   if (apiKey === process.env.API_KEY) {
     const AllServers = connection2.model("ServerModels", AllServerSchema);
