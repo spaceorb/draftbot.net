@@ -54,7 +54,7 @@ const connection2 = mongoose.createConnection(process.env.MONGODB2, {
   useUnifiedTopology: true,
 });
 
-app.get("/api/myendpoint", async (req, res) => {
+app.get("/api/endpoint", async (req, res) => {
   try {
     const response = await axios.get("https://draftbot.net/api/diraota", {
       headers: {
