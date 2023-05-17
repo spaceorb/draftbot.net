@@ -16,5 +16,8 @@ Welcome! This is a dynamic messaging web application, designed with a key featur
 - Node.js
 - MongoDB
 - Express.js
+- Axios
+- API Development
+- Auth
 - Heroku
 - Adobe Photoshop
