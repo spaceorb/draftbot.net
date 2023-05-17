@@ -54,22 +54,6 @@ const connection2 = mongoose.createConnection(process.env.MONGODB2, {
   useUnifiedTopology: true,
 });
 
-app.get("/api/endpoint", async (req, res) => {
-  try {
-    const response = await axios.get("https://draftbot.net/api/diraota", {
-      headers: {
-        Authorization: `Bearer ${process.env.API_KEY}`,
-      },
-    });
-
-    // Send the data back to the client
-    res.json(response.data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "An error occurred while fetching data" });
-  }
-});
-
 app.get("/api/diraota", (req, res) => {
   const apiKey = req.headers["authorization"];
 
@@ -83,6 +67,21 @@ app.get("/api/diraota", (req, res) => {
   } else {
     // If the API keys don't match, send an error response
     res.status(403).send("Unauthorized");
+  }
+});
+app.get("/api/endpoint", async (req, res) => {
+  try {
+    const response = await axios.get("https://draftbot.net/api/diraota", {
+      headers: {
+        Authorization: `Bearer ${process.env.API_KEY}`,
+      },
+    });
+
+    // Send the data back to the client
+    res.json(response.data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred while fetching data" });
   }
 });
 
