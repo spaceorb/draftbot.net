@@ -53,13 +53,20 @@ const connection2 = mongoose.createConnection(process.env.MONGODB2, {
   useUnifiedTopology: true,
 });
 
-app.get("/api/data", (req, res) => {
-  const AllServers = connection2.model("ServerModels", AllServerSchema);
-  AllServers.find()
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => console.log(err));
+app.get("/api/discorddraftbotdataz01", (req, res) => {
+  const apiKey = req.headers["x-api-key"];
+
+  if (apiKey === process.env.API_KEY) {
+    const AllServers = connection2.model("ServerModels", AllServerSchema);
+    AllServers.find()
+      .then((data) => {
+        res.send(data);
+      })
+      .catch((err) => console.log(err));
+  } else {
+    // If the API keys don't match, send an error response
+    res.status(403).send("Unauthorized");
+  }
 });
 
 const io = new Server(server, {
