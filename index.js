@@ -56,6 +56,8 @@ const connection2 = mongoose.createConnection(process.env.MONGODB2, {
 
 app.get("/api/diraota", (req, res) => {
   const apiKey = req.headers["authorization"];
+  console.log("apiKey", apiKey);
+  console.log("process.env.API_KEY", process.env.API_KEY);
 
   if (apiKey === process.env.API_KEY) {
     const AllServers = connection2.model("ServerModels", AllServerSchema);
