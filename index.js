@@ -14,6 +14,7 @@ const crypto = require("crypto");
 const middleware = require("./middleware");
 const { discordBotCmds } = require("./state");
 const logger = require("./logger");
+const axios = require("axios");
 require("dotenv").config();
 
 const connection1 = mongoose.createConnection(process.env.MONGODB, {
@@ -53,7 +54,23 @@ const connection2 = mongoose.createConnection(process.env.MONGODB2, {
   useUnifiedTopology: true,
 });
 
-app.get("/api/discorddraftbotdataz01", (req, res) => {
+app.get("/api/myendpoint", async (req, res) => {
+  try {
+    const response = await axios.get("https://draftbot.net/api/diraota", {
+      headers: {
+        Authorization: `Bearer ${process.env.API_KEY}`,
+      },
+    });
+
+    // Send the data back to the client
+    res.json(response.data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred while fetching data" });
+  }
+});
+
+app.get("/api/diraota", (req, res) => {
   const apiKey = req.headers["x-api-key"];
 
   if (apiKey === process.env.API_KEY) {
