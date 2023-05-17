@@ -1,3 +1,5 @@
+// Please note that the codebase may exhibit some inconsistencies due to my evolving knowledge of JavaScript. While I have made efforts to refactor the older code, not every part has been updated yet.
+
 const mongoose = require("mongoose");
 require("dotenv").config();
 
