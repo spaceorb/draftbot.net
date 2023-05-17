@@ -13,4 +13,4 @@ const PrivateUsersSchema = new mongoose.Schema({
 //   },
 // });
 
-module.exports = mongoose.model("Private Users", PrivateUsersSchema);
+module.exports = PrivateUsersSchema;

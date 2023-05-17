@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
-const RoomsSchema = new mongoose.Schema({
-  rooms: String,
+const MessageListSchema = new mongoose.Schema({
+  roomId: { type: String, required: true },
+  message: Object,
 });
 
 // noteSchema.set("toJSON", {
@@ -13,4 +14,4 @@ const RoomsSchema = new mongoose.Schema({
 //   },
 // });
 
-module.exports = mongoose.model("Rooms", RoomsSchema);
+module.exports = MessageListSchema;

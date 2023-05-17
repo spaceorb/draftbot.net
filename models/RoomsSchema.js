@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 
-const PrivateMessagesSchema = new mongoose.Schema({
-  roomId: { type: String, required: true, unique: true },
-  message: Object,
+const RoomsSchema = new mongoose.Schema({
+  rooms: String,
 });
 
 // noteSchema.set("toJSON", {
@@ -14,4 +13,4 @@ const PrivateMessagesSchema = new mongoose.Schema({
 //   },
 // });
 
-module.exports = mongoose.model("Private Messages", PrivateMessagesSchema);
+module.exports = RoomsSchema;

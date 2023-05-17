@@ -3,48 +3,69 @@ const path = require("path");
 const app = express();
 const http = require("http");
 const cors = require("cors");
+const mongoose = require("mongoose");
+
 const { Server } = require("socket.io");
+app.use(express.json());
 app.use(cors());
 const PORT = process.env.PORT || 3001;
 const server = http.createServer(app);
 const crypto = require("crypto");
 const middleware = require("./middleware");
 const { discordBotCmds } = require("./state");
-const Rooms = require("./models/Rooms");
-const MessageList = require("./models/MessageList");
-const OnlineUsers = require("./models/OnlineUsers");
-const PrivateUsers = require("./models/PrivateUsers");
-const PrivateMessages = require("./models/PrivateMessages");
-const PublicBotData = require("./models/PublicBotData");
-const { DiscordBotLogic } = require("./discordBotLogic");
 const logger = require("./logger");
 require("dotenv").config();
 
+const connection1 = mongoose.createConnection(process.env.MONGODB, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const RoomsSchema = require("./models/RoomsSchema");
+const Rooms = connection1.model("Rooms", RoomsSchema);
+
+const MessageListSchema = require("./models/MessageListSchema.js");
+const MessageList = connection1.model("Messsage List", MessageListSchema);
+
+const OnlineUsersSchema = require("./models/OnlineUsersSchema.js");
+const OnlineUsers = connection1.model("Online Users", OnlineUsersSchema);
+
+const PrivateMessagesSchema = require("./models/PrivateMessagesSchema");
+const PrivateMessages = connection1.model(
+  "Private Messages",
+  PrivateMessagesSchema
+);
+
+const PublicBotDataSchema = require("./models/PublicBotDataSchema");
+const PublicBotData = connection1.model("Public Bot Data", PublicBotDataSchema);
+
+const AllServerSchema = require("./models/AllServersSchema.js");
 if (process.env.NODE_ENV === "production") {
   app.use(middleware.enforceHTTPS);
   app.use(middleware.redirectToNonWWW);
 }
 
 app.use(express.static(path.join(__dirname, "build")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build/index.html"));
-});
-const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 logger.info("connecting to", process.env.MONGODB);
 
-mongoose
-  .connect(process.env.MONGODB, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB Connected..."))
-  .catch((err) => console.log(err));
-// const db = mongoose.connection.useDb("te");
-// console.log("db", db);
+const connection2 = mongoose.createConnection(process.env.MONGODB2, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+app.get("/api/data", (req, res) => {
+  const AllServers = connection2.model("ServerModels", AllServerSchema);
+  AllServers.find()
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => console.log(err));
+});
+
 const io = new Server(server, {
   cors: {
     origin: [
+      "http://localhost:3000",
       "http://localhost:3001",
       "https://draftbot.net",
       "https://www.draftbot.net",
@@ -368,4 +389,9 @@ io.on("connection", (socket) => {
     console.log("user disconnected", socket.id);
   });
 });
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build/index.html"));
+});
+
 server.listen(PORT, () => [console.log(`listening on Port ${PORT}!`)]);

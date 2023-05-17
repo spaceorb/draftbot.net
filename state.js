@@ -1,45 +1,14 @@
-// const QuickChart = require("quickchart-js");
-// const mongoose = require("mongoose");
-// const playerModel = require("./playerSchema");
-// const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
+const mongoose = require("mongoose");
+require("dotenv").config();
 
-// require("dotenv").config();
-// const chart = new QuickChart();
+const connection1 = mongoose.createConnection(process.env.MONGODB, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-// client.on("ready", async () => {
-//   await mongoose
-//     .connect(process.env.MONGODB_SRV, {
-//       keepAlive: true,
-//     })
-//     .then(() => {
-//       console.log("Connected to the database!");
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// });
-
-// let stone = "<:stone:1036469232130609185>";
-// let iron = "<:iron1:1036469242691858433>";
-// let bronze = "<:bronzeZ:1018085243720302653>";
-// let silver = "<:silver:1018085299240316958>";
-// let goldB = "<:goldB:1018085340927504454>";
-// let goldA = "<:goldA:1018085413107269685>";
-// let platinum = "<:plat:1018085729517195265>";
-
-// let playersToEditRoles = [];
-
-// let diamond = "<:diamond:1017723490125754498>";
-// let champion = "<:champion:1017727368883871755>";
-// let grandChampion = "<:grand_champion:1017727237686046830>";
-// let ultimateChampion = "<:ultimate_champion:1017726445101006898>";
-// let rfTrophy = "<:rf_trophy:1017789940593078372>";
-
-// let deathKnight = "<:death_knight:1018085200162476062>";
-// var deathKnightId = "1018085200162476062";
-
-const DraftBotMsg = require("./models/MessageList");
-const BotData = require("./models/PublicBotData");
+const PublicBotDataSchema = require("./models/PublicBotDataSchema");
+const BotData = connection1.model("Public Bot Data", PublicBotDataSchema);
+console.log("BotData", BotData);
 
 const discordBotCmds = async (msg1, author, room) => {
   let newBotData = await BotData.find({ roomId: room });

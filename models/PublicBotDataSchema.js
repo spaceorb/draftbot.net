@@ -14,4 +14,4 @@ const PublicBotDataSchema = new mongoose.Schema({
   resetRandomized: { type: Boolean, default: false },
 });
 
-module.exports = mongoose.model("Public Bot Data", PublicBotDataSchema);
+module.exports = PublicBotDataSchema;
