@@ -9,7 +9,7 @@ Welcome! This is a dynamic messaging web application, designed with a key featur
 ## Technologies Used:
 
 - React.js
-- Recoil.js
+- Redux/ReduxToolkit
 - JavaScript
 - Tailwind CSS
 - Socket.io
